@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
   run-notagen:
@@ -14,11 +14,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt update
           sudo apt install -y unzip wget python3-pip
-          pip3 install -r requirements.txt  # If Python dependencies exist
+
+      - name: Install Python Dependencies (if available)
+        run: |
+          if [ -f "requirements.txt" ]; then
+            pip3 install -r requirements.txt
+          else
+            echo "No requirements.txt found, skipping Python dependencies installation."
+          fi
 
       - name: Install Gradle
         run: |
@@ -32,6 +39,8 @@ jobs:
           if [ -f "build.gradle" ]; then
             gradle build
             gradle run
+          elif [ -f "main.py" ]; then
+            python3 main.py
           else
-            python3 main.py  # Change this if the entry point is different
+            echo "No recognized entry point found."
           fi
