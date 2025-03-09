@@ -1,0 +1,37 @@
+name: Run NotaGen
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  run-notagen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y unzip wget python3-pip
+          pip3 install -r requirements.txt  # If Python dependencies exist
+
+      - name: Install Gradle
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.5-bin.zip -P /tmp
+          sudo unzip -d /opt/gradle /tmp/gradle-8.5-bin.zip
+          echo "export PATH=\$PATH:/opt/gradle/gradle-8.5/bin" >> ~/.bashrc
+          source ~/.bashrc
+
+      - name: Build and Run NotaGen
+        run: |
+          if [ -f "build.gradle" ]; then
+            gradle build
+            gradle run
+          else
+            python3 main.py  # Change this if the entry point is different
+          fi
